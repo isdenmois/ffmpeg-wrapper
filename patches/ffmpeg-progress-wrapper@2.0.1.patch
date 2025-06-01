@@ -1,0 +1,89 @@
+diff --git a/node_modules/ffmpeg-progress-wrapper/.bun-tag-164b04e386b77269 b/.bun-tag-164b04e386b77269
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/ffmpeg-progress-wrapper/.bun-tag-23e2a0abd8fbcbbb b/.bun-tag-23e2a0abd8fbcbbb
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/ffmpeg-progress-wrapper/.bun-tag-6b15c457dd88bf53 b/.bun-tag-6b15c457dd88bf53
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/ffmpeg-progress-wrapper/.bun-tag-964fce56d02729b5 b/.bun-tag-964fce56d02729b5
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/ffmpeg-progress-wrapper/.bun-tag-acc5101589855437 b/.bun-tag-acc5101589855437
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/ffmpeg-progress-wrapper/.bun-tag-edb7b57f77a9c261 b/.bun-tag-edb7b57f77a9c261
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/ffmpeg-progress-wrapper/.bun-tag-fbd81dc8004bfaa b/.bun-tag-fbd81dc8004bfaa
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/dist/helper.js b/dist/helper.js
+index 0a069e2bdd6af933ac1c04b6243b5842784612c2..1b8711bb30f9794e019404e5260b45e40bf1c5a3 100644
+--- a/dist/helper.js
++++ b/dist/helper.js
+@@ -1,6 +1,5 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-const pidusage = require("pidusage");
+ function humanTimeToMS(text) {
+     const parts = text.split(':').map(p => parseFloat(p));
+     let time = 0;
+@@ -10,10 +9,6 @@ function humanTimeToMS(text) {
+     return time;
+ }
+ exports.humanTimeToMS = humanTimeToMS;
+-async function pidToResourceUsage(pid) {
+-    return await pidusage(pid);
+-}
+-exports.pidToResourceUsage = pidToResourceUsage;
+ var Parse;
+ (function (Parse) {
+     function getDuration(text) {
+diff --git a/dist/index.js b/dist/index.js
+index 667998231deddcad1b85d6b9d8e5ea4b63c7f042..03c8221bf47cef029a20acd52bfb9dc3ee360120 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -21,7 +21,7 @@ class FFMpegProgress extends events_1.EventEmitter {
+             const text = buffer.toString();
+             this.emit('raw', text);
+             // parsing duration from metadata
+-            const isMetadataDuration = text.toLowerCase().match(/duration\s*:\s*((\d+:?){1,3}.\d+)/);
++            const isMetadataDuration = text.toLowerCase().match(/duration\s*:\s*((\d+:?){1,3}.\d+)/i);
+             if (isMetadataDuration) {
+                 this.processMetadataDuration(isMetadataDuration[1]);
+             }
+@@ -55,9 +55,7 @@ class FFMpegProgress extends events_1.EventEmitter {
+         this._progressCheck(this._process.stdio[3]);
+         this._process.once('close', (code, signal) => {
+             this.emit('end', code, signal);
+-            clearInterval(this._vitalsTimer);
+         });
+-        this._vitalsTimer = setInterval(this._checkVitals.bind(this), 500);
+     }
+     _progressCheck(stream) {
+         const lineReader = ReadLine.createInterface({ input: stream });
+@@ -73,22 +71,6 @@ class FFMpegProgress extends events_1.EventEmitter {
+             }
+         });
+     }
+-    async _checkVitals() {
+-        try {
+-            const vitals = await helper_1.pidToResourceUsage(this._process.pid);
+-            this._vitalsMemory = vitals.memory;
+-            if (vitals.memory > this.options.maxMemory) {
+-                this._outOfMemory = true;
+-                this.kill();
+-            }
+-        }
+-        catch (e) {
+-            if (!e.stack) {
+-                Error.captureStackTrace(e);
+-            }
+-            console.error(`Vitals check for PID:${this._process.pid} resulted in: ${e.stack}`);
+-        }
+-    }
+     kill(signal = 'SIGKILL') {
+         this._isKilledByUser = signal;
+         this._process.kill(signal);
