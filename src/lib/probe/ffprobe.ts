@@ -30,17 +30,9 @@ export const ffprobe = (file: string) => {
     ],
     { encoding: 'utf8' },
   )
-  const probeData = []
-  const errData = []
-  let exitCode = null
-
-  probeData.push(proc.stdout)
-  errData.push(proc.stderr)
-
-  exitCode = proc.status
 
   if (proc.error) throw new Error(String(proc.error))
-  if (exitCode) throw new Error(errData.join(''))
+  if (proc.status) throw new Error(proc.stderr?.toString() ?? 'ffprobe failed')
 
-  return JSON.parse(probeData.join('')) as Probe
+  return JSON.parse(proc.stdout.toString()) as Probe
 }

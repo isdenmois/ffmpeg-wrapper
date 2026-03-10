@@ -118,7 +118,7 @@ export async function convertFile(to: string, i: Input, options: Options, totalB
     proc.on('details', ({ duration }) => {
       log(i.i, 'details', duration)
       if (duration > 0) {
-        percentMultiplier = duration / +options.t
+        percentMultiplier = +options.t / duration
       }
     })
   }

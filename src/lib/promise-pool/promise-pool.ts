@@ -28,6 +28,7 @@ export class PromisePool<T, K> {
 
   async run(data: T[]): Promise<K[]> {
     const result = new Map<bigint, K>()
+    const mapping = data.map(value => ({ value, id: getId++ })) as Context<T, K>[]
 
     return new Promise((resolve, reject) => {
       const onResult = (id: bigint, value: K) => {
@@ -42,7 +43,11 @@ export class PromisePool<T, K> {
         this.removeData(mapping.map(m => m.id))
         reject(error)
       }
-      const mapping: Context<T, K>[] = data.map(value => ({ value, id: getId++, onResult, onError }))
+
+      for (const item of mapping) {
+        item.onResult = onResult
+        item.onError = onError
+      }
 
       this.data.push(...mapping)
       this.checkAndExecute()
