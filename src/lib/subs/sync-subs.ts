@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import path, { basename } from 'node:path'
 import type { Input } from '../../types'
 import { log } from '../log'
@@ -10,9 +11,22 @@ export async function syncSubs(toFormat: Input[], to: string) {
   log('total', toFormat.length)
 
   for (const i of toFormat) {
+    if (!i.subtitles) {
+      log('Skip sync - no subtitles')
+      totalBar.update(++currentFileIdx)
+      continue
+    }
+
     const base = basename(i.video, path.extname(i.video))
     const toVideoPath = path.join(to, basename(i.video))
     const subsPath = path.join(i.from, i.subtitles)
+
+    if (!existsSync(subsPath)) {
+      log('Skip sync - subtitles not found:', subsPath)
+      totalBar.update(++currentFileIdx)
+      continue
+    }
+
     const toSubsPath = `${path.join(to, base)}.en.srt`
 
     log('Sync', i.subtitles)

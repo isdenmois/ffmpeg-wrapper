@@ -10,7 +10,7 @@ export async function subSync(toVideoPath: string, subsPath: string, toSubsPath:
   await proc.exited
 
   if (proc.exitCode !== 0) {
-    const stderr = await Bun.readableStreamToText(proc.stderr!)
+    const stderr = proc.stderr ? await Bun.readableStreamToText(proc.stderr) : ''
     const stdout = await Bun.readableStreamToText(proc.stdout)
     log(command.join(' '))
     log(stderr)

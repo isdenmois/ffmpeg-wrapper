@@ -13,7 +13,7 @@ if (options.first) {
   inputs = inputs.slice(0, 1)
 }
 
-await selectOptions(inputs, options)
+await selectOptions(inputs, options, from)
 
 ensureFolder(to)
 
